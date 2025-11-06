@@ -1,9 +1,7 @@
-from time import time
 from typing import Optional, List, Any, Tuple, Callable
 from pydantic import BaseModel
 
 from pararun.config import Config
-from pararun.model.adapter import Adapter
 from pararun.model.batcher import BatcherConfig
 from pararun.model.transport_context import TransportContext
 from pararun.service.error_handler import fallback_on_error
@@ -69,7 +67,7 @@ class WorkerCapsule(BaseModel):
                    job_tag: str,
                    context: TransportContext,
                    batcher: Optional[BatcherConfig] = None,
-                   adapter: Optional[Adapter] = None,
+                   adapter=None,
                    options: Optional[dict] = None,
                    on_error: Optional[Callable] = None
                    ) -> Optional[Tuple[Any, List[dict]]]:
@@ -83,18 +81,10 @@ class WorkerCapsule(BaseModel):
         else:
             on_error_function = lambda payload: on_error(payload, adapter.name)
 
-        if options is None:
-            options = {}
-
         assert isinstance(context, TransportContext)
 
         if not self._allow(context):
             return None, log_handler.collection
-
-        if adapter is None:
-            logger.warning(f"Job `{job_tag}` is running without data bus. Inline execution of the job is scheduled.")
-
-        options['event_timestamp'] = int(time())
 
         try:
 
@@ -112,7 +102,7 @@ class WorkerCapsule(BaseModel):
                 job_tag=job_tag,
                 context=context,
                 headers={},
-                options=options
+                options={}
             )
             if on_error_function:
                 try:
