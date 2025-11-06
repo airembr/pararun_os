@@ -13,7 +13,6 @@ setup(
     packages=['pararun', 'pararun_adapter'],
     install_requires=[
         'pydantic',
-        'durable-dot-dict>=0.0.20',
         'requests',
     ],
     classifiers=[
